@@ -3563,6 +3563,28 @@ def LLVMIntrinsicCallOp : CIR_Op<"llvm.intrinsic"> {
 }
 
 //===----------------------------------------------------------------------===//
+// InvariantGroupOp
+//===----------------------------------------------------------------------===//
+
+def InvariantGroupOp
+    : CIR_Op<"invariant_group", [Pure, SameOperandsAndResultType]> {
+  let summary = "Start an invariant group";
+  let description = [{
+    The `cir.invariant_group` operation takes a single pointer value as argument
+    and returns the same pointer value with a fresh invariant group. All loads
+    and stores that access the returned pointer value are presumed by the
+    optimizer to load or store the same value.
+  }];
+
+  let arguments = (ins CIR_PointerType:$ptr);
+  let results = (outs CIR_PointerType:$result);
+
+  let assemblyFormat = [{
+    $ptr `:` type($result) attr-dict
+  }];
+}
+
+//===----------------------------------------------------------------------===//
 // DeleteArrayOp
 //===----------------------------------------------------------------------===//
 

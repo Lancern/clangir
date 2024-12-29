@@ -28,6 +28,27 @@ struct HoistAllocasPass : public HoistAllocasBase<HoistAllocasPass> {
   void runOnOperation() override;
 };
 
+static bool isOpInLoop(mlir::Operation *op) {
+  return op->getParentOfType<cir::LoopOpInterface>();
+}
+
+static bool isWhileCondition(cir::AllocaOp alloca) {
+  for (mlir::Operation *user : alloca->getUsers()) {
+    if (!mlir::isa<cir::StoreOp>(user))
+      continue;
+
+    auto store = mlir::cast<cir::StoreOp>(user);
+    mlir::Operation *storeParentOp = store->getParentOp();
+    if (!mlir::isa<cir::WhileOp>(storeParentOp))
+      continue;
+
+    auto whileOp = mlir::cast<cir::WhileOp>(storeParentOp);
+    return &whileOp.getCond() == store->getParentRegion();
+  }
+
+  return false;
+}
+
 static void process(cir::FuncOp func) {
   if (func.getRegion().empty())
     return;
@@ -49,16 +70,27 @@ static void process(cir::FuncOp func) {
   mlir::Operation *insertPoint = &*entryBlock.begin();
 
   for (auto alloca : allocas) {
-    alloca->moveBefore(insertPoint);
     if (alloca.getConstant()) {
-      // Hoisted alloca may come from the body of a loop, in which case the
-      // stack slot is re-used by multiple objects alive in different iterations
-      // of the loop. In theory, each of these objects are still constant within
-      // their lifetimes, but currently we're not emitting metadata to further
-      // describe this. So for now let's behave conservatively and remove the
-      // const flag on nested allocas when hoisting them.
-      alloca.setConstant(false);
+      if (isOpInLoop(alloca)) {
+        mlir::OpBuilder builder(alloca);
+        auto invariantGroupOp =
+            builder.create<cir::InvariantGroupOp>(alloca.getLoc(), alloca);
+        alloca->replaceUsesWithIf(
+            invariantGroupOp,
+            [op = invariantGroupOp.getOperation()](mlir::OpOperand &use) {
+              return use.getOwner() != op;
+            });
+      } else if (isWhileCondition(alloca)) {
+        // The alloca represents a variable declared as the condition of a while
+        // loop. In CIR, the alloca would be emitted at a scope outside of the
+        // while loop. We have to remove the constant flag during hoisting,
+        // otherwise we would be telling the optimizer that the alloca-ed value
+        // is constant across all iterations of the while loop.
+        alloca.setConstant(false);
+      }
     }
+
+    alloca->moveBefore(insertPoint);
   }
 }
 
