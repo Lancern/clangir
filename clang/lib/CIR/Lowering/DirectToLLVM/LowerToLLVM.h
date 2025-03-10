@@ -265,7 +265,6 @@ public:
 };
 
 class CIRToLLVMCastOpLowering : public mlir::OpConversionPattern<cir::CastOp> {
-  cir::LowerModule *lowerMod;
   mlir::DataLayout const &dataLayout;
 
   mlir::Type convertTy(mlir::Type ty) const;
@@ -273,10 +272,8 @@ class CIRToLLVMCastOpLowering : public mlir::OpConversionPattern<cir::CastOp> {
 public:
   CIRToLLVMCastOpLowering(const mlir::TypeConverter &typeConverter,
                           mlir::MLIRContext *context,
-                          cir::LowerModule *lowerModule,
                           mlir::DataLayout const &dataLayout)
-      : OpConversionPattern(typeConverter, context), lowerMod(lowerModule),
-        dataLayout(dataLayout) {}
+      : OpConversionPattern(typeConverter, context), dataLayout(dataLayout) {}
 
   mlir::LogicalResult
   matchAndRewrite(cir::CastOp op, OpAdaptor,

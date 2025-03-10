@@ -1298,20 +1298,6 @@ mlir::LogicalResult CIRToLLVMCastOpLowering::matchAndRewrite(
   case cir::CastKind::bitcast: {
     auto dstTy = castOp.getType();
     auto llvmDstTy = getTypeConverter()->convertType(dstTy);
-
-    if (mlir::isa<cir::DataMemberType, cir::MethodType>(
-            castOp.getSrc().getType())) {
-      mlir::Value loweredResult;
-      if (mlir::isa<cir::DataMemberType>(castOp.getSrc().getType()))
-        loweredResult = lowerMod->getCXXABI().lowerDataMemberBitcast(
-            castOp, llvmDstTy, src, rewriter);
-      else
-        loweredResult = lowerMod->getCXXABI().lowerMethodBitcast(
-            castOp, llvmDstTy, src, rewriter);
-      rewriter.replaceOp(castOp, loweredResult);
-      return mlir::success();
-    }
-
     auto llvmSrcVal = adaptor.getOperands().front();
     rewriter.replaceOpWithNewOp<mlir::LLVM::BitcastOp>(castOp, llvmDstTy,
                                                        llvmSrcVal);
@@ -1334,17 +1320,6 @@ mlir::LogicalResult CIRToLLVMCastOpLowering::matchAndRewrite(
     auto llvmDstTy = getTypeConverter()->convertType(dstTy);
     rewriter.replaceOpWithNewOp<mlir::LLVM::AddrSpaceCastOp>(castOp, llvmDstTy,
                                                              llvmSrcVal);
-    break;
-  }
-  case cir::CastKind::member_ptr_to_bool: {
-    mlir::Value loweredResult;
-    if (mlir::isa<cir::MethodType>(castOp.getSrc().getType()))
-      loweredResult =
-          lowerMod->getCXXABI().lowerMethodToBoolCast(castOp, src, rewriter);
-    else
-      loweredResult = lowerMod->getCXXABI().lowerDataMemberToBoolCast(
-          castOp, src, rewriter);
-    rewriter.replaceOp(castOp, loweredResult);
     break;
   }
   default: {
@@ -4217,7 +4192,6 @@ void populateCIRToLLVMConversionPatterns(
                                           argsVarMap, patterns.getContext());
   patterns.add<
       // clang-format off
-      CIRToLLVMCastOpLowering,
       CIRToLLVMLoadOpLowering,
       CIRToLLVMStoreOpLowering,
       CIRToLLVMGlobalOpLowering,
@@ -4238,6 +4212,7 @@ void populateCIRToLLVMConversionPatterns(
       >(converter, patterns.getContext(), lowerModule);
   patterns.add<
       // clang-format off
+      CIRToLLVMCastOpLowering,
       CIRToLLVMPtrStrideOpLowering,
       CIRToLLVMInlineAsmOpLowering
       // clang-format on
@@ -4369,19 +4344,6 @@ void prepareTypeConverter(mlir::LLVMTypeConverter &converter,
 
         return mlir::LLVM::LLVMPointerType::get(type.getContext(), targetAS);
       });
-  converter.addConversion(
-      [&, lowerModule](cir::DataMemberType type) -> mlir::Type {
-        assert(lowerModule && "CXXABI is not available");
-        mlir::Type abiType =
-            lowerModule->getCXXABI().lowerDataMemberType(type, converter);
-        return converter.convertType(abiType);
-      });
-  converter.addConversion([&, lowerModule](cir::MethodType type) -> mlir::Type {
-    assert(lowerModule && "CXXABI is not available");
-    mlir::Type abiType =
-        lowerModule->getCXXABI().lowerMethodType(type, converter);
-    return converter.convertType(abiType);
-  });
   converter.addConversion([&](cir::ArrayType type) -> mlir::Type {
     auto ty = convertTypeForMemory(converter, dataLayout, type.getEltType());
     return mlir::LLVM::LLVMArrayType::get(ty, type.getSize());
