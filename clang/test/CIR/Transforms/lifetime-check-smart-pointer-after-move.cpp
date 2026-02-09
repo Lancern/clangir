@@ -166,6 +166,7 @@ void test_shared_ptr_arrow_after_move() {
 
 // Test 8: Move via function parameter (unique_ptr)
 void consume_unique_ptr(std::unique_ptr<int>&& ptr) {}
+void consume_two_unique_ptrs(std::unique_ptr<int>&& ptr1, std::unique_ptr<int>&& ptr2) {}
 
 void test_unique_ptr_move_via_param() {
   std::unique_ptr<int> p(new int(42));
@@ -224,4 +225,15 @@ void test_release_after_move() {
   std::unique_ptr<int> q = std::move(p);
 
   int* raw = p.release(); // OK - release() is safe
+}
+
+// Test 14: Multiple owner arguments with rvalue references
+// Regression test for emittedDiagnostics guard bug
+void test_multi_arg_owner_move() {
+  std::unique_ptr<int> x(new int(1));
+  std::unique_ptr<int> y(new int(2));
+  consume_unique_ptr(std::move(x)); // expected-note {{moved here via std::move or rvalue reference}}
+  consume_two_unique_ptrs(std::move(x), std::move(y)); // expected-warning {{use of invalid pointer 'x'}}
+                                                        // expected-note@-1 {{moved here via std::move or rvalue reference}}
+  int use_y = *y; // expected-warning {{use of invalid pointer 'y'}}
 }
