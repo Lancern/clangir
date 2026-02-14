@@ -43,6 +43,12 @@ add_clang_library(clangTidyCIRModule
 
   DEPENDS
   omp_gen
+  MLIRCIROpsIncGen
+  MLIRCIREnumsGen
+  MLIRCIRASTAttrInterfacesIncGen
+  MLIRBuiltinLocationAttributesIncGen
+  MLIRBuiltinTypeInterfacesIncGen
+  MLIRFunctionInterfacesIncGen
   )
 
 clang_target_link_libraries(clangTidyCIRModule
