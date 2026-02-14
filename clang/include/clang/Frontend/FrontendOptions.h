@@ -440,6 +440,9 @@ public:
   // Enable Clang IR mem2reg pass on the flat CIR.
   unsigned ClangIREnableMem2Reg : 1;
 
+  // Enable Clang IR std::move optimizations.
+  unsigned ClangIREnableMoveOpt : 1;
+
   // Enable Clang IR analysis only pipeline that uses traditional codegen
   // pipeline.
   unsigned ClangIRAnalysisOnly : 1;
@@ -591,7 +594,8 @@ public:
         ClangIRVerifyDiags(false), ClangIRLifetimeCheck(false),
         ClangIRIdiomRecognizer(false), ClangIRLibOpt(false),
         ClangIRCallConvLowering(true), ClangIREnableMem2Reg(false),
-        ClangIRAnalysisOnly(false), EmitClangIRFile(false),
+        ClangIREnableMoveOpt(false), ClangIRAnalysisOnly(false),
+        EmitClangIRFile(false), StdLibStats(false),
         TimeTraceGranularity(500), TimeTraceVerbose(false) {}
 
   /// getInputKindForExtension - Return the appropriate input kind for a file

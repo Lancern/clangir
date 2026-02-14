@@ -240,7 +240,8 @@ public:
               FeOptions.ClangIRLifetimeCheck, LifetimeOpts,
               FeOptions.ClangIRIdiomRecognizer, IdiomRecognizerOpts,
               FeOptions.ClangIRLibOpt, LibOptOpts, PassOptParsingFailure,
-              CodeGenOpts.OptimizationLevel > 0, FlattenCir,
+              CodeGenOpts.OptimizationLevel > 0,
+              FeOptions.ClangIREnableMoveOpt, FlattenCir,
               !FeOptions.ClangIRDirectLowering, EnableCcLowering,
               FeOptions.ClangIREnableMem2Reg)
               .failed()) {

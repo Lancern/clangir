@@ -5028,6 +5028,9 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     // with each other?
   }
 
+  if (Args.hasArg(options::OPT_fclangir_move_opt))
+    CmdArgs.push_back("-fclangir-move-opt");
+
   if (Args.hasArg(options::OPT_fstd_lib_stats))
     CmdArgs.push_back("-fstd-lib-stats");
 

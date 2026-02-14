@@ -17,6 +17,7 @@ add_clang_library(MLIRCIRTransforms
   HoistAllocas.cpp
   PointsToAnalysis.cpp
   LiveObjectAnalysis.cpp
+  MoveOpt.cpp
   StdLibStatistics.cpp
 
   DEPENDS
