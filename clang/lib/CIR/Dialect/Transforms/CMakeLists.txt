@@ -30,6 +30,7 @@ add_clang_library(MLIRCIRTransforms
   MLIRIR
   MLIRPass
   MLIRTransformUtils
+  MLIRSideEffectInterfaces
 
   MLIRCIR
   MLIRCIRInterfaces
