@@ -144,6 +144,12 @@ let cppNamespace = "::cir" in {
         /*defaultImplementation=*/ [{
           return $_attr.getAst()->isConst();
       }]
+      >,
+      InterfaceMethod<"", "::cir::ASTRecordDeclInterface", "getParent", (ins), [{}],
+        /*defaultImplementation=*/ [{
+          return mlir::cast<cir::ASTRecordDeclInterface>(
+            makeFuncDeclAttr($_attr.getAst()->getParent(), $_attr.getContext()));
+        }]
       >
     ];
   }
@@ -254,6 +260,26 @@ let cppNamespace = "::cir" in {
           // without template parameters, which is what we want
           llvm::StringRef name = $_attr.getAst()->getName();
           return name == "unique_ptr" || name == "shared_ptr";
+        }]
+      >,
+      InterfaceMethod<"", "::cir::ASTFunctionDeclInterface", "getMoveAssignmentOperator", (ins), [{}],
+        /*defaultImplementation=*/ [{
+          if (auto cxxRecordDecl = mlir::dyn_cast<clang::CXXRecordDecl>($_attr.getAst()))
+            for (auto *method : cxxRecordDecl->methods())
+              if (method->isMoveAssignmentOperator())
+                return mlir::cast<cir::ASTFunctionDeclInterface>(makeFuncDeclAttr(method, $_attr.getContext()));
+          return {};
+        }]
+      >,
+      InterfaceMethod<"", "::cir::ASTFunctionDeclInterface", "getMoveConstructor", (ins), [{}],
+        /*defaultImplementation=*/ [{
+          if (auto cxxRecordDecl = mlir::dyn_cast<clang::CXXRecordDecl>($_attr.getAst()))
+            for (auto *method : cxxRecordDecl->methods()) {
+              auto *ctor = mlir::dyn_cast<clang::CXXConstructorDecl>(method);
+              if (ctor && ctor->isMoveConstructor())
+                return mlir::cast<cir::ASTFunctionDeclInterface>(makeFuncDeclAttr(ctor, $_attr.getContext()));
+            }
+          return {};
         }]
       >,
       // Note: `getRawDecl` is useful for debugging because it allows dumping

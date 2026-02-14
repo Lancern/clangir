@@ -231,6 +231,9 @@ mlir::Attribute makeFuncDeclAttr(const clang::Decl *decl,
       .Case([ctx](const clang::FunctionDecl *ast) {
         return ASTFunctionDeclAttr::get(ctx, ast);
       })
+      .Case([ctx](const clang::RecordDecl *ast) {
+        return ASTRecordDeclAttr::get(ctx, ast);
+      })
       .Default([](auto) {
         llvm_unreachable("unexpected Decl kind");
         return mlir::Attribute();
