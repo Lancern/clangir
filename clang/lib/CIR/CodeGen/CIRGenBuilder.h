@@ -11,6 +11,7 @@
 
 #include "Address.h"
 #include "CIRGenRecordLayout.h"
+#include "CIRGenStatistics.h"
 #include "CIRGenTypeCache.h"
 #include "clang/CIR/MissingFeatures.h"
 
@@ -187,6 +188,7 @@ public:
 
   cir::ConstArrayAttr getConstArray(mlir::Attribute attrs,
                                     cir::ArrayType arrayTy) {
+    CIRGenStatistics::Stats.recordArrayInit(attrs, arrayTy);
     return cir::ConstArrayAttr::get(arrayTy, attrs);
   }
 

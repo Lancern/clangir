@@ -23,6 +23,7 @@
 #include "clang/AST/StmtVisitor.h"
 #include "clang/CIR/Dialect/IR/CIRAttrs.h"
 #include "clang/CIR/MissingFeatures.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -432,6 +433,27 @@ static bool isTrivialFiller(Expr *E) {
   return false;
 }
 
+// Option to summarize array initializers found.
+struct PrintArrayInitsOpt : public llvm::cl::opt<bool> {
+  using llvm::cl::opt<bool>::opt;
+  llvm::SmallVector<std::string> jsonObjects;
+  ~PrintArrayInitsOpt() override {
+    if (getValue()) {
+      llvm::dbgs() << "{ \"inits\": [ ";
+      bool first = true;
+      for (auto &obj : jsonObjects) {
+        if (first)
+          first = false;
+        else
+          llvm::dbgs() << ",\n  ";
+
+        llvm::dbgs() << obj;
+      }
+      llvm::dbgs() << " ] }\n";
+    }
+  }
+};
+
 void AggExprEmitter::emitArrayInit(Address DestPtr, cir::ArrayType AType,
                                    QualType ArrayQTy, Expr *ExprToVisit,
                                    ArrayRef<Expr *> Args, Expr *ArrayFiller) {
@@ -491,6 +513,9 @@ void AggExprEmitter::emitArrayInit(Address DestPtr, cir::ArrayType AType,
   // emmiting the redundant `cir.const 1` instrs.
   mlir::Value one;
 
+  // Collect the initializer list so that we can print array initializers.
+  llvm::SmallVector<mlir::Value> initList;
+
   // Emit the explicit initializers.
   for (uint64_t i = 0; i != NumInitElements; ++i) {
     if (i > 0)
@@ -512,6 +537,8 @@ void AggExprEmitter::emitArrayInit(Address DestPtr, cir::ArrayType AType,
     LValue elementLV = CGF.makeAddrLValue(
         Address(element, cirElementType, elementAlign), elementType);
     emitInitializationToLValue(Args[i], elementLV);
+
+    CIRGenStatistics::Stats.collectArrayInit(initList, elementLV.getAddress());
   }
 
   // Check whether there's a non-trivial array-fill expression.
@@ -595,6 +622,9 @@ void AggExprEmitter::emitArrayInit(Address DestPtr, cir::ArrayType AType,
           builder.createYield(loc);
         });
   }
+
+  // Characterize the list of initial elements.
+  CIRGenStatistics::Stats.recordArrayInit(initList, AType);
 }
 
 /// True if the given aggregate type requires special GC API calls.

@@ -40,6 +40,7 @@ add_clang_library(clangCIR
   CIRGenOpenCL.cpp
   CIRGenOpenMPRuntime.cpp
   CIRGenPointerAuth.cpp
+  CIRGenStatistics.cpp
   CIRGenStmt.cpp
   CIRGenStmtOpenMP.cpp
   CIRGenTBAA.cpp
