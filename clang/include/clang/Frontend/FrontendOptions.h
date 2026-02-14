@@ -445,6 +445,10 @@ public:
   unsigned ClangIRAnalysisOnly : 1;
   // Emit Clang IR to a side file.
   unsigned EmitClangIRFile : 1;
+
+  /// Enable gather statistics about std library usage.
+  unsigned StdLibStats : 1;
+
   CodeCompleteOptions CodeCompleteOpts;
 
   /// Specifies the output format of the AST.

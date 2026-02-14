@@ -15,6 +15,7 @@ add_clang_library(MLIRCIRTransforms
   ABILowering.cpp
   CallConvLowering.cpp
   HoistAllocas.cpp
+  StdLibStatistics.cpp
 
   DEPENDS
   MLIRCIRPassIncGen
@@ -22,6 +23,7 @@ add_clang_library(MLIRCIRTransforms
   LINK_LIBS PUBLIC
   clangAST
   clangBasic
+  clangFrontend
   TargetLowering
 
   MLIRAnalysis

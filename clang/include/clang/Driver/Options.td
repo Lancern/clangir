@@ -3208,6 +3208,11 @@ def fclangir_mem2reg : Flag<["-"], "fclangir-mem2reg">,
   HelpText<"Enable mem2reg on the flat ClangIR">,
   MarshallingInfoFlag<FrontendOpts<"ClangIREnableMem2Reg">>;
 
+def fstd_lib_stats : Flag<["-"], "fstd-lib-stats">,
+  Visibility<[ClangOption, CC1Option]>, Group<f_Group>,
+  HelpText<"Enable gathering statistics about the std libary from the AST.">,
+  MarshallingInfoFlag<FrontendOpts<"StdLibStats">>;
+
 def clangir_disable_passes : Flag<["-"], "clangir-disable-passes">,
   Visibility<[ClangOption, CC1Option]>,
   HelpText<"Disable CIR transformations pipeline">,

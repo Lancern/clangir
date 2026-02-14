@@ -36,6 +36,7 @@
 #include "mlir/Pass/PassManager.h"
 #include "clang/CIR/Dialect/Passes.h"
 #include "clang/CIR/FrontendAction/CIRGenAction.h"
+#include "clang/CIR/StdLibStatistics.h"
 #endif
 
 using namespace clang;
@@ -219,6 +220,9 @@ CreateFrontendAction(CompilerInstance &CI) {
 
   if (CI.getLangOpts().HLSL)
     Act = std::make_unique<HLSLFrontendAction>(std::move(Act));
+
+  if (FEOpts.StdLibStats)
+    Act = std::make_unique<WrappingStdLibStatsAction>(std::move(Act));
 
   if (FEOpts.FixAndRecompile) {
     Act = std::make_unique<FixItRecompile>(std::move(Act));

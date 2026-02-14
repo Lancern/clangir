@@ -5028,6 +5028,9 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     // with each other?
   }
 
+  if (Args.hasArg(options::OPT_fstd_lib_stats))
+    CmdArgs.push_back("-fstd-lib-stats");
+
   if (IsOpenMPDevice) {
     // We have to pass the triple of the host if compiling for an OpenMP device.
     std::string NormalizedTriple =
