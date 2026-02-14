@@ -15,6 +15,7 @@ add_clang_library(MLIRCIRTransforms
   ABILowering.cpp
   CallConvLowering.cpp
   HoistAllocas.cpp
+  PointsToAnalysis.cpp
   StdLibStatistics.cpp
 
   DEPENDS

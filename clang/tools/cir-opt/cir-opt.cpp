@@ -84,6 +84,10 @@ int main(int argc, char **argv) {
     return mlir::createABILoweringPass();
   });
 
+  ::mlir::registerPass([]() -> std::unique_ptr<::mlir::Pass> {
+    return mlir::createPointsToDiagnosticPass();
+  });
+
   mlir::registerAllPasses();
 
   return failed(MlirOptMain(
