@@ -1,3 +1,4 @@
-# ClangIR (CIR)
+# ClangIR: Development Now Upstream 🚀
 
-Check https://clangir.org for general information, build instructions and documentation.
+ClangIR has been integrated into the llvm/llvm-project repository. All future development will take place there. 🛠️
+This repository is no longer accepting new contributions. ❌
